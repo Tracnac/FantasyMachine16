@@ -1,0 +1,83 @@
+Assembleur (En développement...)
+
+    Le langage assembleur pour la Fantasy Machine 16 est un langage simple inspiré de l'assembleur du 68000 et RISC.
+    Il permet de définir des sections de code et de données, avec des directives pour organiser la mémoire, il travaille en deux passes.
+    La première passe analyse le code source, vérifie la syntaxe et calcule les adresses et génére le bytecode.
+    La seconde passe génère la table des symboles et la footer map qui est placé à la fin du bytecode, elle fait 512 octets (Voir plus bas).
+    
+    Directives autorisées :
+        .ORG $XXXX                              ; Définit l'adresse de départ du code (par défaut 0x0000)
+        .START                                  ; Définit l'adresse de départ et initialise le PC
+
+        LABEL:                                  ; Définit une étiquette (label) pour les sauts
+            INSTRUCTION                         ; Instruction assembleur (ex. MOV.W R0, R1)
+                .B                              ; Suffixe pour byte (8 bits)
+                .W                              ; Suffixe pour word (16 bits)
+                    0xXXXX                      ; Valeur hexadécimale (16 bits)
+                    %XXXXXXXX                   ; Valeur binaire (8 bits)
+                    XXXX                        ; Valeur décimale (16 bits)
+                    $XXXX                       ; Adresse absolue (16 bits)
+
+        .DATA                                   ; Début de la section données
+
+          MYBYTES: .BYTES 0xXX, 0xYY, %XXXXXXXX   ; Déclare des octets (byte data)
+          MYWORDS: .WORDS 0xXXXX, 0xYYYY          ; Déclare des mots (word data)
+          MYASCII: .ASCII "texte"                 ; Déclare une chaîne ASCII (sans le null terminator)
+
+          // .EQU LABEL, value                    ; Définit une constante (Non implémenté ici)
+
+        .END                                   ; Fin du fichier source
+
+    Format de la footer map (spécification de la table des sections)
+    
+    Il y a une gestion des chunks des données à la fin du fichier source.
+    Le fichier binaire compilé est suivi d'une table de sections (footer map) qui décrit les blocs de données à charger en mémoire.
+    Ce qui réduit considérablement la taille du binaire final en évitant les zones vides.
+    Chaque entrée de la footer map décrit un bloc de données avec son adresse de départ, son type et sa longueur.
+        
+    La footer map utilise un format spécifique de 4 octets par entrée :
+
+    [16bits start_address][15..14 type][13..0 length]
+
+      Types :
+
+      00 = .byte (données octets)
+      01 = .word (données mots 16-bit)
+      10 = .ascii (chaînes de caractères)
+      11 = .org (marqueurs d'organisation mémoire avec gestion des chunks), longueur=0)
+
+Note :
+      - Les directives .ORG peuvent être utilisées plusieurs fois pour définir des sections de données distinctes.
+      - La directive .START (Défault à $0000) doit apparaître une seule fois et avant toute directive .ORG.
+      - La directive .DATA doit apparaître une fois pour définir des sections de données et juste avant le .END
+      - La directive .END doit apparaître une seule fois à la fin du fichier source.
+      - Les étiquettes (labels) doivent être uniques et suivies d'un deux-points (:).
+      - Les valeurs numériques doivent être dans les plages autorisées (0-255 pour les octets, 0-65535 pour les mots).
+      - Les commentaires commencent par un point-virgule (;)
+      - Les directives et instructions sont insensibles à la casse.
+      - Les espaces et tabulations sont ignorés.
+      - Les lignes vides sont ignorées.
+
+    Exemple de code assembleur avec sections de données multiples et directives .ORG :
+
+    .START
+      MOV.B 0xFF, R0        ; Charge 255 dans R0 (byte)
+    LOOP:
+      CMP.B 0x00, R0        ; Compare R0 avec 0
+      DEC R0                ; Décrémente R0
+      JCOND EQ, LOOP        ; Si égal (Z=1), saute à LOOP
+      ; Unreachable code...
+      JMP END
+    .ORG $1000
+    END:
+      MOV 0x0000, R1        ; Charge 0 dans R1 (word)
+      MOV.B %00000001, R2   ; Charge 1 dans R2 (byte)
+      MOV 3, R4             ; Charge 3 dans R4 (word)
+      MOV $END, R5          ; Charge l'adresse de END dans R5 (word)
+      MOV.W MYWORD_1, R3    ; Charge MYWORD_1 dans R3 (word)
+      MOV.B 0x01, $FF09     ; Halt the CPU
+    .DATA
+      MYBYTES: .BYTES 0x01, 0x02, 0x03
+      MYWORDS: .WORDS 0x1234, 0x5678
+      MYASCII: .ASCII "Hello, World!"
+    .END
