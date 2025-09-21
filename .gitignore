@@ -25,4 +25,10 @@ replay_pid*
 
 # Assembler output
 *.bin
+target/
+out/
 
+
+# VSCode settings
+.vscode/
+.github/
