@@ -1,0 +1,149 @@
+# BNF des Mnémoniques pour Fantasy Machine 16 Assembler
+# Grammaire BNF complète avec nombre d'opérandes basée sur l'implémentation CPU
+
+<instruction> ::= <zero_operand_instruction>
+                | <single_operand_instruction>
+                | <dual_operand_instruction>
+                | <conditional_jump_instruction>
+
+# Instructions sans opérandes
+<zero_operand_instruction> ::= <zero_op_mnemonic> <size_suffix>?
+
+<zero_op_mnemonic> ::= "NOP"      ; No operation
+                     | "RET"      ; Return from subroutine
+                     | "RETI"     ; Return from interrupt
+
+# Instructions à un seul opérande
+<single_operand_instruction> ::= <single_op_mnemonic> <size_suffix>? <operand>
+
+<single_op_mnemonic> ::= "INC"    ; Increment (uses dst operand)
+                       | "DEC"    ; Decrement (uses dst operand)
+                       | "NEG"    ; Negate (uses dst operand)
+                       | "NOT"    ; Logical NOT (uses dst operand)
+                       | "JMP"    ; Jump (uses dst operand)
+                       | "PUSH"   ; Push to stack (uses src operand)
+                       | "POP"    ; Pop from stack (uses dst operand)
+                       | "CALL"   ; Call subroutine (uses dst operand)
+                       | "ROL"    ; Rotate left (uses dst operand)
+                       | "ROR"    ; Rotate right (uses dst operand)
+                       | "SHL"    ; Shift left (uses dst operand)
+                       | "SHR"    ; Shift right (uses dst operand)
+
+# Instructions à deux opérandes
+<dual_operand_instruction> ::= <dual_op_mnemonic> <size_suffix>? <operand> "," <operand>
+
+<dual_op_mnemonic> ::= "MOV"      ; Move data (src, dst)
+                     | "ADD"      ; Addition (src, dst) - dst = dst + src
+                     | "SUB"      ; Subtraction (src, dst) - dst = dst - src
+                     | "CMP"      ; Compare (src, dst) - flags = dst - src
+                     | "TST"      ; Test (src, dst) - flags = dst & src
+                     | "AND"      ; Logical AND (src, dst) - dst = dst & src
+                     | "OR"       ; Logical OR (src, dst) - dst = dst | src
+                     | "XOR"      ; Logical XOR (src, dst) - dst = dst ^ src
+                     | "MUL"      ; Signed multiplication (src, dst)
+                     | "DIV"      ; Signed division (src, dst)
+                     | "MULU"     ; Unsigned multiplication (src, dst)
+                     | "DIVU"     ; Unsigned division (src, dst)
+                     | "BTST"     ; Bit test (bit_num, operand)
+                     | "BSET"     ; Bit set (bit_num, operand)
+                     | "BCLR"     ; Bit clear (bit_num, operand)
+
+# Instruction de saut conditionnel (syntaxe spéciale)
+<conditional_jump_instruction> ::= "JCOND" <size_suffix>? <condition_code> "," <operand>
+
+# Suffixes de taille
+<size_suffix> ::= ".B"            ; Byte (8 bits)
+                | ".W"            ; Word (16 bits)
+
+# Codes de condition pour JCOND
+<condition_code> ::= "AL"         ; Always (0) - inconditional
+                   | "EQ"         ; Equal (1) - Z=1
+                   | "NE"         ; Not equal (2) - Z=0
+                   | "CS"         ; Carry set (3) - C=1
+                   | "CC"         ; Carry clear (4) - C=0
+                   | "MI"         ; Minus (5) - N=1
+                   | "PL"         ; Plus (6) - N=0
+                   | "VS"         ; Overflow set (7) - V=1
+                   | "VC"         ; Overflow clear (8) - V=0
+                   | "GT"         ; Greater than (9) - signed
+                   | "GE"         ; Greater or equal (10) - signed
+                   | "LT"         ; Less than (11) - signed
+                   | "LE"         ; Less or equal (12) - signed
+                   | "HI"         ; Higher (13) - unsigned
+                   | "HS"         ; Higher or same (14) - unsigned
+                   | "LO"         ; Lower (15) - unsigned
+
+# Types d'opérandes selon les modes d'adressage
+<operand> ::= <register_operand>
+            | <register_indirect_operand>
+            | <absolute_address_operand>
+            | <immediate_operand>
+            | <label_reference>
+
+# Mode d'adressage registre (MODE_REG = 0)
+<register_operand> ::= "R" <register_number>
+<register_number> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+
+# Mode d'adressage indirect par registre (MODE_IND = 1)
+<register_indirect_operand> ::= "[" <register_operand> "]"
+
+# Mode d'adressage absolu (MODE_ABS = 2)
+<absolute_address_operand> ::= "$" <hex_digits>
+
+# Mode d'adressage immédiat (MODE_IMM = 3)
+<immediate_operand> ::= <hex_value>
+                      | <binary_value>
+                      | <decimal_value>
+
+# Référence à un label (résolu en adresse absolue)
+<label_reference> ::= <identifier>
+
+# Formats de valeurs
+<hex_value> ::= "0x" <hex_digits>
+<binary_value> ::= "%" <binary_digits>
+<decimal_value> ::= <decimal_digits>
+
+# Éléments de base
+<hex_digits> ::= <hex_digit>+
+<binary_digits> ::= <binary_digit>+
+<decimal_digits> ::= <digit>+
+
+<hex_digit> ::= <digit> | "A" | "B" | "C" | "D" | "E" | "F" 
+              | "a" | "b" | "c" | "d" | "e" | "f"
+<binary_digit> ::= "0" | "1"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<identifier> ::= <letter> (<letter> | <digit> | "_" | "-")*
+<letter> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z"
+
+# Notes importantes sur les opérandes :
+# 
+# 1. Instructions à opérande unique :
+#    - INC, DEC, NEG, NOT, ROL, ROR, SHL, SHR, JMP, POP, CALL : utilisent l'opérande comme destination
+#    - PUSH : utilise l'opérande comme source
+#
+# 2. Instructions à deux opérandes :
+#    - Ordre : <source>, <destination>
+#    - La destination ne peut PAS être en mode immédiat (MODE_IMM)
+#    - MUL/MULU/DIV/DIVU stockent le résultat dans dst et dst+1 (si dst est un registre)
+#
+# 3. Modes d'adressage supportés :
+#    - MODE_REG (0) : Registre direct
+#    - MODE_IND (1) : Indirect par registre [Rn]
+#    - MODE_ABS (2) : Adresse absolue $addr
+#    - MODE_IMM (3) : Valeur immédiate (source seulement)
+#
+# 4. Instructions spéciales :
+#    - JCOND : syntaxe unique avec code de condition
+#    - BTST/BSET/BCLR : premier opérande = numéro de bit (0-15)
+
+# Exemples d'instructions valides :
+# NOP                    ; Zero operand
+# INC R0                 ; Single operand (dst)
+# PUSH R1                ; Single operand (src)
+# MOV.B 0xFF, R0         ; Dual operand (imm -> reg)
+# ADD.W R1, R2           ; Dual operand (reg -> reg)
+# CMP 0x00, [R0]         ; Dual operand (imm -> indirect)
+# JCOND EQ, LOOP         ; Conditional jump
+# BTST 7, R1             ; Bit test (bit 7 of R1)
+# JMP $1000              ; Jump to absolute address
+# CALL END               ; Call label

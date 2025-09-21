@@ -1,0 +1,56 @@
+# BNF: Pour l'assembleur (Work in progress)
+
+<program> ::= <start_directive>? (<org_directive> | <instruction_line> | <label_definition>)* <data_section>? <end_directive>
+
+<start_directive> ::= ".START"
+<org_directive> ::= ".ORG" <address>
+<end_directive> ::= ".END"
+
+<data_section> ::= ".DATA" <data_declaration>*
+
+<data_declaration> ::= <identifier> ":" <data_type>
+<data_type> ::= <byte_data> | <word_data> | <ascii_data>
+<byte_data> ::= ".BYTE" <value_list>
+<word_data> ::= ".WORD" <value_list>
+<ascii_data> ::= ".ASCII" <string_literal> ("," <value_list>)?
+
+<value_list> ::= <value> ("," <value>)*
+
+<instruction_line> ::= <label_definition>? <instruction>? <comment>?
+<label_definition> ::= <identifier> ":"
+<instruction> ::= <mnemonic> <size_suffix>? <operand_list>?
+             | "JCOND" <size_suffix>? <condition_code> "," <operand>
+
+<size_suffix> ::= ".B" | ".W"
+<operand_list> ::= <operand> ("," <operand>)*
+<operand> ::= <register> | <register_indirect> | <immediate> | <address> | <identifier>
+
+<register> ::= "R" <register_number>
+<register_indirect> ::= "[" <register> "]"
+; Note: Indirect addressing only supports registers [Rn], NOT absolute addresses like [$1000]
+<register_number> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+
+<condition_code> ::= "AL" | "EQ" | "NE" | "CS" | "CC" | "MI" | "PL" | "VS" | "VC" | "GT" | "GE" | "LT" | "LE" | "HI" | "HS" | "LO"
+
+<value> ::= <hex_value> | <binary_value> | <decimal_value> | <address>
+<immediate> ::= <hex_value> | <binary_value> | <decimal_value>
+<address> ::= "$" <hex_digits>
+
+<hex_value> ::= "0x" <hex_digits>
+<binary_value> ::= "%" <binary_digits>
+<decimal_value> ::= <decimal_digits>
+<string_literal> ::= '"' <character>* '"'
+<identifier> ::= <letter> (<letter> | <digit> | "_" | "-")*
+<comment> ::= ";" <character>*
+
+<hex_digits> ::= <hex_digit>+
+<binary_digits> ::= <binary_digit>+
+<decimal_digits> ::= <digit>+
+
+<hex_digit> ::= <digit> | "A" | "B" | "C" | "D" | "E" | "F" | "a" | "b" | "c" | "d" | "e" | "f"
+<binary_digit> ::= "0" | "1"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<letter> ::= "A" | "B" | ... | "Z" | "a" | "b" | ... | "z"
+<character> ::= any printable character
+
+<mnemonic> ::= "NOP" | "MOV" | "ADD" | "SUB" | "INC" | "DEC" | "NEG" | "JMP" | "CMP" | "TST" | "AND" | "OR" | "XOR" | "NOT" | "RETI" | "MULU" | "DIVU" | "PUSH" | "POP" | "CALL" | "RET" | "MUL" | "DIV" | "ROL" | "ROR" | "SHL" | "SHR" | "BTST" | "BSET" | "BCLR" | "JCOND"

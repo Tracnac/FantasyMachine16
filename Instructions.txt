@@ -600,8 +600,8 @@ Les interruptions permettent au CPU de réagir à des événements asynchrones (
 
         .DATA                                   ; Début de la section données
 
-        MYBYTES: .BYTES 0xXX, 0xYY, %XXXXXXXX   ; Déclare des octets (byte data)
-        MYWORDS: .WORDS 0xXXXX, 0xYYYY          ; Déclare des mots (word data)
+        MYBYTES: .BYTE 0xXX, 0xYY, %XXXXXXXX   ; Déclare des octets (byte data)
+        MYWORDS: .WORD 0xXXXX, 0xYYYY          ; Déclare des mots (word data)
         MYASCII: .ASCII "texte"                 ; Déclare une chaîne ASCII (sans le null terminator)
 
         // .EQU LABEL, value                    ; Définit une constante (Non implémenté ici)

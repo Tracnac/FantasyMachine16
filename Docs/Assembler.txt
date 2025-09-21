@@ -20,8 +20,8 @@ Assembleur (En développement...)
 
         .DATA                                   ; Début de la section données
 
-          MYBYTES: .BYTES 0xXX, 0xYY, %XXXXXXXX   ; Déclare des octets (byte data)
-          MYWORDS: .WORDS 0xXXXX, 0xYYYY          ; Déclare des mots (word data)
+          MYBYTES: .BYTE 0xXX, 0xYY, %XXXXXXXX   ; Déclare des octets (byte data)
+          MYWORDS: .WORD 0xXXXX, 0xYYYY          ; Déclare des mots (word data)
           MYASCII: .ASCII "texte"                 ; Déclare une chaîne ASCII (sans le null terminator)
 
           // .EQU LABEL, value                    ; Définit une constante (Non implémenté ici)
@@ -50,6 +50,7 @@ Note :
       - Les directives .ORG peuvent être utilisées plusieurs fois pour définir des sections de données distinctes.
       - La directive .START (Défault à $0000) doit apparaître une seule fois et avant toute directive .ORG.
       - La directive .DATA doit apparaître une fois pour définir des sections de données et juste avant le .END
+      - Dans la section .DATA: .BYTE, .WORD, .ASCII sont les seuls mots clefs autorisés
       - La directive .END doit apparaître une seule fois à la fin du fichier source.
       - Les étiquettes (labels) doivent être uniques et suivies d'un deux-points (:).
       - Les valeurs numériques doivent être dans les plages autorisées (0-255 pour les octets, 0-65535 pour les mots).
@@ -77,7 +78,8 @@ Note :
       MOV.W MYWORD_1, R3    ; Charge MYWORD_1 dans R3 (word)
       MOV.B 0x01, $FF09     ; Halt the CPU
     .DATA
-      MYBYTES: .BYTES 0x01, 0x02, 0x03
-      MYWORDS: .WORDS 0x1234, 0x5678
+      MYBYTES: .BYTE 0x01, 0x02, 0x03
+      MYWORDS: .WORD 0x1234, 0x5678
       MYASCII: .ASCII "Hello, World!"
     .END
+
