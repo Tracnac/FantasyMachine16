@@ -25,12 +25,10 @@ replay_pid*
 
 # Assembler output
 *.bin
+target/
+out/
 
-# Maven output
-/target/
-!*/src/main/resources/
-!*/src/test/resources/
 
-# VS Code files
-.vscode
-.github
+# VSCode settings
+.vscode/
+.github/
